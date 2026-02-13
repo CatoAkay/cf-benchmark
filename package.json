@@ -1,0 +1,11 @@
+{
+  "name": "cf-benchmark-monorepo",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev:api": "pnpm --filter api dev",
+    "db:migrate": "pnpm --filter api prisma migrate dev",
+    "db:generate": "pnpm --filter api prisma generate"
+  }
+}

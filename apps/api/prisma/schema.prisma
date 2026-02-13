@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CompetitionType {
+  OPEN
+  GAMES
+}
+
+enum DivisionType {
+  MEN
+  WOMEN
+}
+
+enum ScoreType {
+  TIME
+  REPS
+  LOAD
+  TIME_REPS
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+
+  results UserResult[]
+}
+
+model Season {
+  id   String @id @default(cuid())
+  year Int    @unique
+
+  workouts Workout[]
+  benchmarkAthletes BenchmarkAthlete[]
+}
+
+model Workout {
+  id          String          @id @default(cuid())
+  seasonId    String
+  competition CompetitionType
+  division    DivisionType
+  name        String
+  description String
+  scoreType   ScoreType
+  createdAt   DateTime @default(now())
+
+  season Season @relation(fields: [seasonId], references: [id])
+
+  benchmarkResults BenchmarkResult[]
+  userResults      UserResult[]
+
+  @@index([seasonId, competition, division])
+}
+
+model BenchmarkAthlete {
+  id          String   @id @default(cuid())
+  seasonId    String
+  competition CompetitionType
+  division    DivisionType
+  rank        Int
+  name        String
+
+  season Season @relation(fields: [seasonId], references: [id])
+  results BenchmarkResult[]
+
+  @@unique([seasonId, competition, division, rank])
+  @@index([seasonId, competition, division])
+}
+
+model BenchmarkResult {
+  id           String @id @default(cuid())
+  workoutId    String
+  athleteId    String
+
+  timeSeconds  Int?
+  reps         Int?
+  loadKg       Float?
+  tiebreakSecs Int?
+
+  workout Workout @relation(fields: [workoutId], references: [id])
+  athlete BenchmarkAthlete @relation(fields: [athleteId], references: [id])
+
+  @@unique([workoutId, athleteId])
+}
+
+model UserResult {
+  id           String   @id @default(cuid())
+  userId       String
+  workoutId    String
+  createdAt    DateTime @default(now())
+
+  timeSeconds  Int?
+  reps         Int?
+  loadKg       Float?
+  tiebreakSecs Int?
+
+  user    User    @relation(fields: [userId], references: [id])
+  workout Workout @relation(fields: [workoutId], references: [id])
+
+  @@unique([userId, workoutId])
+  @@index([workoutId])
+  @@index([userId])
+}
